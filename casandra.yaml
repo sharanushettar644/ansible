@@ -1,0 +1,14 @@
+---
+all:
+  hosts: all
+  
+- stat: 
+    path: /opt/apache-cassandra-3.7-bin.tar.gz
+  register: cassandra_source_file
+  
+- name: download the source
+  get_url: 
+    url: https://archive.apache.org/dist/cassandra/3.7/apache-cassandra-3.7-bin.tar.gz
+    dest: /opt/apache-cassandra-3.7-bin.tar.gz
+    mode: 0440
+  when: cassandra_source_file.stat.exists == False

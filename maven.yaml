@@ -1,0 +1,11 @@
+---
+- hosts: client2
+  tasks:
+    - name: Install Maven using Ansible
+      become: yes
+      apt:
+        name: "{{ packages }}"
+        state: absent
+      vars:
+        packages:
+           - maven

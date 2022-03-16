@@ -1,0 +1,90 @@
+- hosts: all
+  become: yes
+  tasks:
+
+    - name: update
+      apt: update_cache=yes   
+      ignore_errors: yes 
+   
+    - name: Installating JDK.
+      apt: name=default-jdk state=latest
+
+#    - name: Adding Group and user for Tomcat.
+ #     shell: groupadd tomcat && useradd -s /bin/false -g tomcat -d /opt/tomcat tomcat
+      
+    - name: Installating curl.
+      apt: name=curl state=latest
+      
+    - name: Downloading Apache Tomcat tar.
+      shell: wget https://dlcdn.apache.org/tomcat/tomcat-8/v8.5.76/bin/apache-tomcat-8.5.76.tar.gz      
+      args:
+        chdir: /tmp
+#    - name: Creating Apache Tomcat home directory.
+ #     command: mkdir /opt/tomcat
+      
+    - name: Extracting Apache Tomcat.
+      shell: tar -xzvf /tmp/apache-tomcat-8*tar.gz -C /opt/tomcat --strip-components=1
+      
+    - name: Updating permission.
+      command: "{{ item }}"
+      with_items:
+        - chown -R tomcat:tomcat /opt/tomcat
+        - chmod -R g+r /opt/tomcat/conf
+        - chmod g+x /opt/tomcat/conf
+                   
+    - name: Creating service for Apache tomcat.
+      file:
+        path: /etc/systemd/system/tomcat.service
+        state: touch
+        mode: u+rwx,g-rwx,o-x
+
+    - name: download foo.conf
+      get_url:
+        url: https://raw.githubusercontent.com/aftab70/Apache_Tomcat/master/tomcat_services
+        dest: /etc/systemd/system/tomcat.service
+ 
+
+    - name: changing password
+      lineinfile: dest=/opt/tomcat/conf/tomcat-users.xml regexp="</tomcat-users>" line="<user username="shettar" password="shettar" roles="manager-gui,admin-gui,manager-script"/> </tomcat-users>" state=present
+
+#    - name: host-manager
+ #     lineinfile: dest=/opt/tomcat/webapps/manager/META-INF/context.xml  regexp="^ <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1" />" line="--"  state=present
+#
+ #   - name: host-manager2
+  #    lineinfile: dest=/opt/tomcat/webapps/manager/META-INF/context.xml regexp="^<Valve className="org.apache.catalina.valves.RemoteAddrValve"" line="--" state=present    
+
+
+    - name: host-manager
+      lineinfile:
+         path: /opt/tomcat/webapps/host-manager/META-INF/context.xml
+         line: ' <!-- '
+         insertbefore: <Valve className="org.apache.catalina.valves.RemoteAddrValve"
+          
+
+    - name: host-manager2
+      lineinfile:
+         path: /opt/tomcat/webapps/host-manager/META-INF/context.xml
+         line: ' --> '
+         insertafter: allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1" />.*
+
+    - name: manager
+      lineinfile:
+         path: /opt/tomcat/webapps/manager/META-INF/context.xml
+         line: ' <!-- '
+         insertbefore: <Valve className="org.apache.catalina.valves.RemoteAddrValve"
+
+
+    - name: manager2
+      lineinfile:
+         path: /opt/tomcat/webapps/manager/META-INF/context.xml
+         line: ' --> '
+         insertafter: allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1" />.*
+
+
+
+
+    - name: Deamon reload.
+      command: systemctl daemon-reload
+ 
+    - name: Starting Apache Tomcat service.
+      service: name=tomcat state=started

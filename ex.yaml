@@ -1,0 +1,9 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: Ansible insert a line before example
+      lineinfile:
+        path: /opt/tomcat/webapps/manager/META-INF/context.xml
+        line: '<!--
+        insertbefore: .*<Valve className
+

@@ -1,0 +1,22 @@
+- name: "source code : download"
+  register: source_code_clones
+  git:
+    repo: ssh://git@somewhere.invalid/projects/{{ item }}.git
+    dest: "{{ repodir }}/{{ item }}"
+    version: master
+    depth: 1
+  with_items:
+  - project1
+  - project2
+  - project3
+
+# - debug:
+#     msg: "{{ item }}"
+#   with_items: "{{ source_code_clones.results }}"
+
+- name: "source code : local install"
+  when: item.changed
+  command: mvn --batch-mode --quiet install
+  args:
+     chdir: "{{ repodir }}/{{ item.item }}"
+  with_items: "{{ source_code_clones.results }}"

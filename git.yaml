@@ -1,0 +1,15 @@
+---
+- name: install git
+  hosts: all
+  remote_user: ubuntu
+  become: true
+  tasks:
+    - name: update system
+      apt: 
+ #       upgrade: yes
+        name: git
+        state: present
+    - name: clone git repo
+      ansible.builtin.git:
+        repo: https://github.com/sharanushettar644/shellScript.git
+        dest: /home/ubuntu/git
